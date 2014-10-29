@@ -1,7 +1,7 @@
 #define ksyn   0.4      //synchronization parameter k
 
 #define tstart 00    //synchronization time t
-#define tsyn   500    //synchronization time t
+#define tsyn   00    //synchronization time t
 
 #define Dm  8           //Time Delay Dimension
 #define tau 10          //Time Delay

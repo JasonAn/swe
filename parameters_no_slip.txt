@@ -4,7 +4,7 @@ dx:                             5.0e4
 dy:                             5.0e4
 n_iteration:                    50001
 dt:                               36
-write_out_interval:             51
+write_out_interval:             1
 coriolis_parameter:            5.0e-5
 coriolis_beta:                  2e-11
 wind_stress:               	    0.2

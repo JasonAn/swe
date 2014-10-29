@@ -187,19 +187,31 @@ int main (int argc, char ** argv)
     * loop through time steps to do the actual simulation
     */
 
-    for (ncycle = 1; ncycle < n_iter; ncycle ++){
-        if (ncycle >= tstart && ncycle < tstart + tsyn){
-            jacobian (fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, dt, neighbors, lat, lon, print_out_order, ncycle, write_out_interval);
-            printf("ncycle!! = %li \n", ncycle);
-        }
-        else{
-        RK4(fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, neighbors, lat, lon, print_out_order, ncycle);
-        print_field(u, "u", ncycle, xdim, ydim, print_out_order);
-        print_field(v, "v", ncycle, xdim, ydim, print_out_order);
-        print_field(P, "P", ncycle, xdim, ydim, print_out_order);
-        printf("ncycle = %li \n", ncycle);
+    if(tsyn > 0) {
+        for (ncycle = 1; ncycle < n_iter; ncycle++) {
+            if (ncycle >= tstart && ncycle < tstart + tsyn) {
+                jacobian(fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, dt, neighbors, lat, lon, print_out_order, ncycle, write_out_interval);
+                printf("ncycle!! = %li \n", ncycle);
+            }
+            else {
+                RK4(fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, neighbors, lat, lon, print_out_order, ncycle);
+                print_field(u, "u", ncycle, xdim, ydim, print_out_order);
+                print_field(v, "v", ncycle, xdim, ydim, print_out_order);
+                print_field(P, "P", ncycle, xdim, ydim, print_out_order);
+                printf("ncycle = %li \n", ncycle);
+            }
         }
     }
+    else if(tsyn == 0)
+    {
+        for (ncycle = 1; ncycle < n_iter; ncycle++) {
+                RK4(fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, neighbors, lat, lon, print_out_order, ncycle);
+                print_field(u, "u", ncycle, xdim, ydim, print_out_order);
+                print_field(v, "v", ncycle, xdim, ydim, print_out_order);
+                print_field(P, "P", ncycle, xdim, ydim, print_out_order);
+                printf("ncycle = %li \n", ncycle);
+            }
+        }
 
 
 	printf("\n");
