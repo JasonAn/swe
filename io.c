@@ -256,30 +256,29 @@ void print_parameters(int xdim, int ydim, double dx, double dy, long int n_iter,
 
 /*------------------------*/
 
-void read_field(double *P_msr, int xdim, int ydim, int t, unsigned int *print_out_order)
+void read_field(double *msr, char * name, int xdim, int ydim, int t, unsigned int *print_out_order)
 {
 
 	int i;
- // int i, j, k;
     int tdim = xdim*ydim;
 
+    FILE *in_stream_msr;
+    char value[1000];
 
-  FILE *in_stream_P;
-  char value[1000];
 
 
-  char addressP[500]="";
-  sprintf(addressP,"./%ix%i_msr/P_t%i.dat",xdim,ydim,t);
+    char address_msr[500]="";
+    sprintf(address_msr,"./%ix%i_msr/%s_t%i.dat",xdim,ydim,name,t);
 
-  in_stream_P = fopen(addressP,"r");
+    in_stream_msr = fopen(address_msr,"r");
 
-  for (i=0; i<tdim; i++) {
-    fscanf(in_stream_P, "%s", value);
+    for (i=0; i<tdim; i++) {
+        fscanf(in_stream_msr, "%s", value);
 
-    P_msr[print_out_order[i]] = atof(value);
-  }
+        msr[print_out_order[i]] = atof(value);
+    }
 
-  fclose(in_stream_P);
+    fclose(in_stream_msr);
 
 }
 

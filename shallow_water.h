@@ -1,7 +1,7 @@
 #define ksyn   0.4      //synchronization parameter k
 
 #define tstart 00    //synchronization time t
-#define tsyn   00    //synchronization time t
+#define tsyn   500    //synchronization time t
 
 #define Dm  8           //Time Delay Dimension
 #define tau 10          //Time Delay
@@ -24,7 +24,7 @@ void initialize_fields(double *u, double *v, double *P, double *x_forcing, doubl
 
 void get_parameters(char *file_name, int *xdim, int *ydim, double *dx, double *dy, long int *n_iter, double *dt, int *write_out_interval, double *f0, double *beta, double *forcingTerm, double *dissipationTerm, double *RayleighFriction, double *EquilibriumDepth, double *A);
 
-void read_field(double *fields_msr, int xdim, int ydim, int t, unsigned int *print_out_order);
+void read_field(double *msr, char * name, int xdim, int ydim, int t, unsigned int *print_out_order);
 
 void import_field(double *P, int xdim, int ydim, int t, unsigned int *print_out_order);
 
