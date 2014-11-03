@@ -245,17 +245,16 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
 //    fflush(stdout);
 
     double *jacT;
-    jacT = calloc(3 * tdim * tdim * Dm, sizeof(double));
+    jacT = calloc(3 * tdim * 3 * trimsr * Dm, sizeof(double));
 
-    int svd_m = Dm * tdim, svd_n = 3 * tdim;
+    int svd_m = 3 * Dm * trimsr, svd_n = 3 * tdim;
 
-
-    for(i = 0; i < Dm * tdim ; i++){
+    for(i = 0; i < 3 * Dm * trimsr ; i++){
         for (j = 0; j < svd_n; j++){
-            jacT[j * svd_m + i] = jac[i * svd_n + j + 2 * (3 * tdim * tdim * Dm)];
+            jacT[j * svd_m + i] = jac[(int)(i * step) * svd_n + j + 2 * (3 * tdim * tdim * Dm)];
         }
     }
-
+	
 
 //    print_jacobian(jacT, "jacT", ncycle, xdim, ydim, svd_n, svd_m);
 // svd
@@ -319,7 +318,7 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
     int svd_k = 1;
     double alpha = 1.0, beta = 0.0;
 
-    dgemm_("T", "N", &svd_n, &svd_k, &svd_m, &alpha, svd_u, &svd_m, fields_debug, &svd_m, &beta, temp, &svd_n);
+    dgemm_("T", "N", &svd_n, &svd_k, &svd_m, &alpha, svd_u, &svd_m, fields_trimsr, &svd_m, &beta, temp, &svd_n);
 //    print_svd(temp, "temp1", ncycle, xdim, ydim, svd_n, 1, svd_n);
 
 

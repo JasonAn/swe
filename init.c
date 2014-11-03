@@ -167,16 +167,14 @@ void initialize_fields (double *u, double *v, double *P, double *x_forcing, doub
 
     for(i=0; i < tdim; i++){
 
-        PSI[i] = A*cos((lon[i]+0.2)*DI)*sin((lat[i]+0.5)*DJ);
-//      PSI[i] = A*cos((lon[i])*DI)*cos((lat[i])*DJ);
-//      PSI[i] = A * sin((lon[i] + 0.5) * DI)*sin((lat[i] + 0.5) * DJ);
+		//Initial condition for data
+        PSI[i] = A*sin((lon[i]+0.5)*DI)*sin((lat[i]+0.5)*DJ);
+        P[i] = PCF*(cos(4.0*((double)lon[i])*DI)+cos(4.0*((double)lat[i])*DJ))+EquilibriumDepth;
 
-
-
-        P[i] = PCF*(cos(2.0*((double)lon[i]) + 0.5 *DI)+cos(2.0*((double)lat[i]) + 0.5 *DJ))+EquilibriumDepth;
-//      P[i] = PCF*(cos(4.0*((double)lon[i] + 0.5) * DI) + cos(4.0*((double)lat[i] + 0.5) * DJ)) + EquilibriumDepth;
-        //P[i] = 100.0 * PCF * ( sin(0.5* DI * lon[i]) + sin(0.5 * DJ * lat[i])) + EquilibriumDepth;
-
+		//Initial condition for model
+		//PSI[i] = A*cos((lon[i]+0.2)*DI)*sin((lat[i]+0.5)*DJ);
+        //P[i] = PCF*(cos(2.0*((double)lon[i]) + 0.5 *DI)+cos(2.0*((double)lat[i]) + 0.5 *DJ))+EquilibriumDepth;
+		
         //x_forcing[i] = sin(0.5 * DJ * ((double)lat[i] + 0.5));
         x_forcing[i] = 0.0;
        // if you include y or z forcing, you should alter f_calc.c (line 60 & 250)
