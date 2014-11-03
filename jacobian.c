@@ -99,10 +99,11 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
 // import data imformation
 
 
-    double *fields_msr, *fields_debug;
+    double *fields_msr, *fields_debug, *fields_trimsr;
 
     fields_msr = calloc(3 * Dm * tdim, sizeof(double));
     fields_debug = calloc(Dm * tdim, sizeof(double));
+    fields_trimsr = calloc(3 * Dm * trimsr, sizeof(double));
 
 
     for (i = 0; i < Dm; i++){
@@ -124,7 +125,13 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
     for (i = 0; i < Dm * tdim; i++){
         fields_debug[i] = fields_msr[i + 2 * Dm * tdim];
     }
-
+    
+    const double step = tdim * 1.0 / trimsr;
+    
+    for (i = 0; i < 3 * Dm * trimsr ; i++){
+        fields_trimsr[i] = fields_msr[(int)(i * step)];
+    }
+    
 //  measured variables not equals to tdim
 
 
@@ -155,10 +162,9 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
     v_psi = psi + tdim;
     P_psi = psi + 2 * tdim;
 
-    double *jac_u, *jac_v, *jac_P;
-    jac_u = calloc(3 * tdim * tdim * Dm, sizeof(double));
-    jac_v = calloc(3 * tdim * tdim * Dm, sizeof(double));
-    jac_P = calloc(3 * tdim * tdim * Dm, sizeof(double));
+    double *jac;
+    jac = calloc(3 * tdim * 3 * tdim * Dm, sizeof(double));
+
 
 
     int ddim = 0; // ddim: 0 - Dm
@@ -191,9 +197,9 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
 
 //        print_fields(P_psi, "Psi", ncycle, ddim, ele, xdim, ydim, print_out_order);
         for(i = 0; i < tdim; i++){
-            jac_u[ele + (i + ddim * tdim) * tdim * 3] = u_psi[i];
-            jac_v[ele + (i + ddim * tdim) * tdim * 3] = v_psi[i];
-            jac_P[ele + (i + ddim * tdim) * tdim * 3] = P_psi[i];
+            jac[ele + (i + ddim * tdim) * tdim * 3] = u_psi[i];
+            jac[ele + (i + ddim * tdim) * tdim * 3 + (3 * tdim * tdim * Dm)] = v_psi[i];
+            jac[ele + (i + ddim * tdim) * tdim * 3 + 2 * (3 * tdim * tdim * Dm)] = P_psi[i];
         }
 
 //        printf("Jacobian ele %i delay %i\n", ele, ddim);
@@ -224,9 +230,9 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
 
 //            print_fields(P_psi, "Psi", ncycle, ddim, ele, xdim, ydim, print_out_order);
             for(i = 0; i < tdim; i++){
-                jac_u[ele + (i + ddim * tdim) * tdim * 3] = u_psi[i];
-                jac_v[ele + (i + ddim * tdim) * tdim * 3] = v_psi[i];
-                jac_P[ele + (i + ddim * tdim) * tdim * 3] = P_psi[i];
+            jac[ele + (i + ddim * tdim) * tdim * 3] = u_psi[i];
+            jac[ele + (i + ddim * tdim) * tdim * 3 + (3 * tdim * tdim * Dm)] = v_psi[i];
+            jac[ele + (i + ddim * tdim) * tdim * 3 + 2 * (3 * tdim * tdim * Dm)] = P_psi[i];
             }
 
 //            fflush(stdout);
@@ -246,7 +252,7 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
 
     for(i = 0; i < Dm * tdim ; i++){
         for (j = 0; j < svd_n; j++){
-            jacT[j * svd_m + i] = jac_P[i * svd_n + j];
+            jacT[j * svd_m + i] = jac[i * svd_n + j + 2 * (3 * tdim * tdim * Dm)];
         }
     }
 
@@ -368,15 +374,14 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
     free(fields_ori);
     free(fields_msr);
     free(fields_debug);
+    free(fields_trimsr);
 
     free(fieldspl);
     free(fieldsmi);
 
     free(psi);
 
-    free(jac_u);
-    free(jac_v);
-    free(jac_P);
+    free(jac);
     free(jacT);
 
     free(svd_s);

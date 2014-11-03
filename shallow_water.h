@@ -5,6 +5,7 @@
 
 #define Dm  8           //Time Delay Dimension
 #define tau 10          //Time Delay
+#define trimsr	250
 
 #define eps 0.001       //delta x
 
