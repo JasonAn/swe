@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 
 #include "shallow_water.h"
 
@@ -49,9 +50,7 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
     double *fields_save;
     fields_save = calloc(3 * tdim, sizeof(double));
 
-    for (i = 0; i < 3 * tdim; i++){
-        fields_save[i] = fields[i];
-    }
+    memcpy(fields_save, fields, 3 * tdim * sizeof(double));
 
 //    print_svd(fields, "fields", ncycle, xdim, ydim, 3 * tdim, 1, 3 * tdim);
 
@@ -86,7 +85,6 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
         }
 
 
-
 //        for (i = 0; i < Dm; i++){
 ////        printf("t = %li\t", ncycle + i * tau);
 ////        printf("po = %li\n", fields_msr + i * tdim);
@@ -99,12 +97,10 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
 // import data imformation
 
 
-    double *fields_msr, *fields_debug, *fields_trimsr;
+    double *fields_msr, *fields_trimsr;
 
     fields_msr = calloc(3 * Dm * tdim, sizeof(double));
-    fields_debug = calloc(Dm * tdim, sizeof(double));
     fields_trimsr = calloc(3 * Dm * trimsr, sizeof(double));
-
 
     for (i = 0; i < Dm; i++){
 //        printf("t = %li\t", ncycle + i * tau);
@@ -122,15 +118,15 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
         fields_msr[i] -= fields_ori[i];
     }
 
-    for (i = 0; i < Dm * tdim; i++){
-        fields_debug[i] = fields_msr[i + 2 * Dm * tdim];
-    }
     
     const double step = tdim * 1.0 / trimsr;
     
-    for (i = 0; i < 3 * Dm * trimsr ; i++){
+    for (i = 0; i < Dm * trimsr ; i++){
         fields_trimsr[i] = fields_msr[(int)(i * step)];
+        fields_trimsr[i + Dm * trimsr] = fields_msr[(int)(i * step) + Dm * tdim];
+        fields_trimsr[i + 2 * Dm * trimsr] = fields_msr[(int)(i * step) + 2 * Dm * tdim];
     }
+
     
 //  measured variables not equals to tdim
 
@@ -179,14 +175,16 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
 
         ddim = 0;
 
-        for (i = 0; i < 3 * tdim; i++){
-        fieldspl[i] = fields_save[i];
-        fieldsmi[i] = fields_save[i];
-        }
-
+        memcpy(fieldspl, fields_save, 3 * tdim * sizeof(double));
+        memcpy(fieldsmi, fields_save, 3 * tdim * sizeof(double));
+//        for (i = 0; i < 3 * tdim; i++){
+//        fieldspl[i] = fields_save[i];
+//        fieldsmi[i] = fields_save[i];
+//        }
 
         fieldspl[ele] = fieldspl[ele] + eps * fields_save[ele];
         fieldsmi[ele] = fieldsmi[ele] - eps * fields_save[ele];
+
 
 //      memory for the Jacobian matrix
 
@@ -249,9 +247,11 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
 
     int svd_m = 3 * Dm * trimsr, svd_n = 3 * tdim;
 
-    for(i = 0; i < 3 * Dm * trimsr ; i++){
+    for(i = 0; i < Dm * trimsr ; i++){
         for (j = 0; j < svd_n; j++){
-            jacT[j * svd_m + i] = jac[(int)(i * step) * svd_n + j + 2 * (3 * tdim * tdim * Dm)];
+            jacT[j * svd_m + i] = jac[(int)(i * step) * svd_n + j];
+            jacT[j * svd_m + i + Dm * trimsr] = jac[(int)(i * step + Dm * tdim) * svd_n + j];
+            jacT[j * svd_m + i + 2 * Dm * trimsr] = jac[(int)(i * step + 2 * Dm * tdim) * svd_n + j];
         }
     }
 	
@@ -336,9 +336,11 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
 
 //next step
 
-    for (i = 0; i < 3 * tdim; i++){
-        fields[i] = fields_save[i];
-    }
+    memcpy(fields, fields_save, 3 * tdim * sizeof(double));
+
+//    for (i = 0; i < 3 * tdim; i++){
+//        fields[i] = fields_save[i];
+//    }
 
 //    double *fields_next;
 //
@@ -372,7 +374,6 @@ void jacobian(double *fields_dot, double *fields, const double *parameters, cons
     free(fields_save);
     free(fields_ori);
     free(fields_msr);
-    free(fields_debug);
     free(fields_trimsr);
 
     free(fieldspl);

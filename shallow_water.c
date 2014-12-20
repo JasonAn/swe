@@ -4,6 +4,16 @@
 #include "shallow_water.h"
 
 
+//struct drifter{
+//    size_t grid_m, grid_n;
+//    double x, y;
+//    double u, v;
+//
+//    double r1, r2, r3, r4;
+//
+//};
+
+
 int main (int argc, char ** argv)
 {
     int i;
@@ -182,7 +192,16 @@ int main (int argc, char ** argv)
     print_field(v, "v", ncycle, xdim, ydim, print_out_order);
     print_field(P, "P", ncycle, xdim, ydim, print_out_order);
 
-
+//    // memory for drifter;
+//    struct drifter *p1 = calloc(1, sizeof(struct drifter));
+//
+//    p1->grid_m = 1;
+//    p1->grid_n = 0;
+//    p1->x	= 0.0;
+//    p1->y	= 0.0;
+//
+//    p1->u = 0.0;
+//    p1->v = 0.0;
     /*
     * loop through time steps to do the actual simulation
     */
