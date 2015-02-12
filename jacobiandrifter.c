@@ -141,7 +141,7 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
     start = clock();
 
     for (ele = 0; ele < 3 * tdim; ele++){
-        printf("ele = %i, ncycle = %i\n", ele, ncycle);
+        //printf("ele = %i, ncycle = %i\n", ele, ncycle);
         
         memcpy(fieldspl, fields_save, 3 * tdim * sizeof(double));
         memcpy(fieldsmi, fields_save, 3 * tdim * sizeof(double));
@@ -229,8 +229,7 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
     }
 
     free(neighbors);
-
-    free(fields_save);
+    //  free(fields_save);
 //    free(fields_ori);
     free(fields_msr);
 
