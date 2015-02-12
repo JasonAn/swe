@@ -54,6 +54,11 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
     const double * fields_save = fields_temp;
     free(fields_temp);
 
+    struct drifter *ptdrifter_save = calloc(ndr,sizeof(struct drifter));
+    struct drifter *ptmsrdrifter_save = calloc(ndr, sizeof(struct drifter));
+    memcpy(ptdrifter_save, ptdrifter, ndr * sizeof(struct drifter));
+    memcpy(ptmsrdrifter_save, ptmsrdrifter, ndr * sizeof(struct drifter));
+
     double *fields_msr;
     fields_msr = calloc(3 * tdim, sizeof(double));
 
@@ -81,8 +86,8 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
     }
 
 
-    driftdelay(ptdrifter, delaytensor_model, ndr, fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, lat, lon, neighbors, dt, print_out_order,ncycle);
-    driftdelay(ptmsrdrifter, delaytensor_data, ndr, fields_dot, fields_msr, parameters, forcing, xdim, ydim, dx, dy, lat, lon, neighbors, dt,print_out_order,ncycle);
+    driftdelay(ptdrifter_save, delaytensor_model, ndr, fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, lat, lon, neighbors, dt, print_out_order,ncycle);
+    driftdelay(ptmsrdrifter_save, delaytensor_data, ndr, fields_dot, fields_msr, parameters, forcing, xdim, ydim, dx, dy, lat, lon, neighbors, dt,print_out_order,ncycle);
 
     double *drifterdiff_0, *drifterdiff_1;
     drifterdiff_0 = calloc(Dm * ndr, sizeof(double));
@@ -149,8 +154,10 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
         fieldspl[ele] = fieldspl[ele] + eps * fields_save[ele];
         fieldsmi[ele] = fieldsmi[ele] - eps * fields_save[ele];
 
-        driftdelay(ptdrifter, delaytensorpl, ndr, fields_dot, fieldspl, parameters, forcing, xdim, ydim, dx, dy, lat, lon, neighbors, dt, print_out_order,ncycle);
-        driftdelay(ptdrifter, delaytensormi, ndr, fields_dot, fieldsmi, parameters, forcing, xdim, ydim, dx, dy, lat, lon, neighbors, dt, print_out_order,ncycle);
+        memcpy(ptdrifter_save, ptdrifter, ndr * sizeof(struct drifter));
+        driftdelay(ptdrifter_save, delaytensorpl, ndr, fields_dot, fieldspl, parameters, forcing, xdim, ydim, dx, dy, lat, lon, neighbors, dt, print_out_order,ncycle);
+        memcpy(ptdrifter_save, ptdrifter, ndr * sizeof(struct drifter));
+        driftdelay(ptdrifter_save, delaytensormi, ndr, fields_dot, fieldsmi, parameters, forcing, xdim, ydim, dx, dy, lat, lon, neighbors, dt, print_out_order,ncycle);
 
             for (i = 0; i < ndr; i++){
                 for(ddim = 0; ddim < Dm; ddim++){
@@ -216,6 +223,11 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
         fields[i] += 1.5 * (nudge_0[i] + nudge_1[i]);
     }
 
+    memcpy(ptdrifter_save,ptdrifter, ndr * sizeof(struct drifter));
+    memcpy(ptmsrdrifter_save, ptmsrdrifter, ndr * sizeof(struct drifter));
+    drift(ptdrifter, ndr, fields, xdim, ydim, dx, dy, lat, lon, dt);
+    drift(ptmsrdrifter, ndr, fields_msr, xdim, ydim, dx, dy, lat, lon, dt);
+
     print_field(u, "u", ncycle, xdim, ydim, print_out_order);
     print_field(v, "v", ncycle, xdim, ydim, print_out_order);
     print_field(P, "P", ncycle, xdim, ydim, print_out_order);
@@ -243,6 +255,9 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
 
     free(drifterdiff_0);
     free(drifterdiff_1);
+
+    free(ptdrifter_save);
+    free(ptmsrdrifter_save);
 
 
 }
