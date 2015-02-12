@@ -9,6 +9,11 @@
 
 #define eps 0.001       //delta x
 
+struct drifter{
+    double x, y;
+    double u, v;
+};
+
 // from f_calc.c
 
 void Fcalc(double *fields_dot, const double *fields, const double *parameters, const double *forcing, int xdim, int ydim, double dx, double dy, int **n, unsigned int *lat, unsigned int *lon, unsigned int *print_out_order, long int ncycle);
@@ -41,9 +46,16 @@ void print_svd(double *field, char *name, int time_step,  int xdim, int ydim, in
 
 void jacobian(double *fields_dot, double *fields, const double *parameters, const double *forcing, int xdim, int ydim, double dx, double dy, double dt, int **n, unsigned int *lat, unsigned int *lon, unsigned int *print_out_order, long int ncycle, int write_out_interval);
 
+void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmesdrifter, size_t ndr, double *fields_dot, double *fields, const double *parameters, const double *forcing, int xdim, int ydim, double dx, double dy, double dt, int **n, unsigned int *lat, unsigned int *lon, unsigned int *print_out_order, long int ncycle, int write_out_interval);
+
 void dgesvd(char* jobu, char* jobvt, int* m, int* n, double* a, int* lda, double* s, double* u, int* ldu, double* vt, int* ldvt, double* work, int* lwork, int* info );
 
 void dgelss( int* m, int* n, int* nrhs, double* a, int* lda, double* b, int* ldb, double* s, double* rcond, int* rank, double* work, int* lwork, int* iwork, int* info );
 
+// from drifter.c
 
+void drift(struct drifter *ptdrifter, size_t ndr, double *fields, int xdim, int ydim, double dx, double dy, unsigned int *lat, unsigned int * lon, double dt);
 
+//jacobiandrifter.c
+
+void driftdelay(struct drifter *ptdrifter, double ***delaytensor, size_t ndr,  double *fields_dot, double *fields, const double *parameters, const double *forcing, int xdim, int ydim, double dx, double dy, unsigned int *lat, unsigned *lon, int **neighbors, double dt, unsigned int *print_out_order, long int ncycle);

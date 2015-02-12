@@ -2,7 +2,7 @@ xdim:                           16
 ydim:                           16
 dx:                             5.0e4
 dy:                             5.0e4
-n_iteration:                    50001
+n_iteration:                    20000
 dt:                               36
 write_out_interval:             1
 coriolis_parameter:            5.0e-5

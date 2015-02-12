@@ -4,19 +4,9 @@
 #include "shallow_water.h"
 
 
-//struct drifter{
-//    size_t grid_m, grid_n;
-//    double x, y;
-//    double u, v;
-//
-//    double r1, r2, r3, r4;
-//
-//};
-
-
 int main (int argc, char ** argv)
 {
-    int i;
+    int i, j;
 
     /*
     * the geometry of the water layer
@@ -192,16 +182,20 @@ int main (int argc, char ** argv)
     print_field(v, "v", ncycle, xdim, ydim, print_out_order);
     print_field(P, "P", ncycle, xdim, ydim, print_out_order);
 
-//    // memory for drifter;
-//    struct drifter *p1 = calloc(1, sizeof(struct drifter));
-//
-//    p1->grid_m = 1;
-//    p1->grid_n = 0;
-//    p1->x	= 0.0;
-//    p1->y	= 0.0;
-//
-//    p1->u = 0.0;
-//    p1->v = 0.0;
+
+    int ndr = 144; // number of drifters
+
+    struct drifter *model_ptdrifter = calloc(ndr,sizeof(struct drifter));
+    struct drifter *data_ptdrifter = calloc(ndr,sizeof(struct drifter));
+
+    for(i =0; i< 12; i++) {
+        for(j = 0; j < 12; j++) {
+            model_ptdrifter[i * 12 + j].x = data_ptdrifter[i * 12 + j].x = 2 + j;
+            model_ptdrifter[i * 12 + j].y = data_ptdrifter[i * 12 + j].y = 2 + i;
+        }
+    }
+
+
     /*
     * loop through time steps to do the actual simulation
     */
@@ -209,7 +203,8 @@ int main (int argc, char ** argv)
     if(tsyn > 0) {
         for (ncycle = 1; ncycle < n_iter; ncycle++) {
             if (ncycle >= tstart && ncycle < tstart + tsyn) {
-                jacobian(fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, dt, neighbors, lat, lon, print_out_order, ncycle, write_out_interval);
+                //jacobian(fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, dt, neighbors, lat, lon, print_out_order, ncycle, write_out_interval);
+                jacobiandrifter(model_ptdrifter, data_ptdrifter, ndr, fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, dt, neighbors, lat, lon, print_out_order, ncycle, write_out_interval);
                 printf("ncycle!! = %li \n", ncycle);
             }
             else {
@@ -235,7 +230,11 @@ int main (int argc, char ** argv)
 
 	printf("\n");
 
-	return (0);
+
+    free(model_ptdrifter);
+    free(data_ptdrifter);
+
+    return (0);
 }
 
 

@@ -1,13 +1,15 @@
 CC=cc
 CFLAGS=-g -Wall
-LDFLAGS=-llapack -lblas -lm
+LDFLAGS=-llapack -lgsl -gslcblas -lblas -lm
 BINARY=shallow_water
 
 SOURCE_FILES=shallow_water.c\
              f_calc.c\
              init.c\
              io.c\
-             jacobian.c
+             jacobian.c\
+             drifter.c\
+             jacobiandrifter.c
 
 OBJECTS=$(SOURCE_FILES:.c=.o)
 

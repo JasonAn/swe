@@ -4,6 +4,8 @@
 #include <time.h>
 #include <string.h>
 
+#include "shallow_water.h"
+
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_ieee_utils.h>
 #include <gsl/gsl_test.h>
@@ -14,70 +16,78 @@
 #include "/media/jason/Program/Library/interp2d-master/interp2d_spline.c"
 #include "/media/jason/Program/Library/interp2d-master/bicubic.c"
 
-struct drifter{
-    double x, y;
-    double u, v;
-};
-
 
 void velinterp (double xdr, double ydr, int xdim, int ydim, double *u, double *v, double *ptudr, double *ptvdr);
 
-void drift(double *fields, int xdim, int ydim, unsigned int *lat, unsigned *lon){
+void drift(struct drifter *ptdrifter, size_t ndr, double *fields, int xdim, int ydim, double dx, double dy, unsigned int *lat, unsigned int *lon, double dt);
 
-    int n = 2; // number of the drifters
+
+void drift(struct drifter *ptdrifter, size_t ndr, double *fields, int xdim, int ydim, double dx, double dy, unsigned int *lat, unsigned *lon, double dt){
+
 
 //    clock_t start, finish;
 //    double duration;
 
-    int i, j, tdim;
+    int i, tdim;
     tdim = xdim * ydim;
 	
     double *u, *v, *P;
 	
-    u = calloc(tdim, sizeof(double));
-    v = calloc(tdim, sizeof(double));
-    P = calloc(tdim, sizeof(double));
+    u = calloc((xdim + 1) * (ydim + 1), sizeof(double));
+    v = calloc((xdim + 1) * (ydim + 1), sizeof(double));
+    P = calloc((xdim + 1) * (ydim + 1), sizeof(double));
 
     for(i = 0; i < tdim; i++){
-        u[lat[i] * ydim + lon[i]] = fields[i];
-		v[lat[i] * ydim + lon[i]] = fields[i + tdim];
-        P[lat[i] * ydim + lon[i]] = fields[i + 2 * tdim];
-		
+        u[lat[i] * xdim + lon[i] + lat[i]] = fields[i];
+		v[lat[i] * xdim + lon[i] + lat[i]] = fields[i + tdim];
+        //P[lat[i] * xdim + lon[i] + lat[i]] = fields[i + 2 * tdim];
     }
 
-	struct drifter *ptdrifter = calloc(n,sizeof(struct drifter));
-	
-	ptdrifter[0].x = 5.0;
-	ptdrifter[0].y = 7.0;
-	
-	int mi = 0;
-	do{
-		mi++;
-	}while(lat[mi] == ptdrifter[0].x && lon[mi] == ptdrifter[0].y);
-	
-	ptdrifter[1].x = 10.0;
-	ptdrifter[1].y = 3.0;
-	
-	
+    for (i = 0; i < xdim; i++){
+        u[xdim * ydim + xdim + i] = u[i];
+        v[xdim * ydim + xdim + i] = v[i];
+    }
+
+    for (i = 0; i <= ydim; i++){
+        u[i * xdim  + i + xdim] = u[i * xdim + i];
+        v[i * xdim  + i + xdim] = v[i * xdim + i];
+    }
+
+
+    //printf("u =  %f, %f \n", u[0], u[15]);
+
+    double *ptudr, *ptvdr;
+
 	// need initialize the positions of the n drifters
 	
-	for (i = 0; i < n; i++){
-		double xdr, ydr;  // temp memory for drifter position 
-		double udr, vdr;
-		double *ptudr = &udr;
-		double *ptvdr = &vdr;
+	for (i = 0; i < ndr; i++){
+		double xdr, ydr, udr, vdr;  // temp memory for drifter position
+		ptudr = &udr;
+		ptvdr = &vdr;
 		xdr = ptdrifter[i].x;
 		ydr = ptdrifter[i].y;
-		velinterp (xdr, ydr, xdim, ydim, u, v, ptudr, ptvdr);
+		velinterp (xdr, ydr, xdim + 1, ydim + 1, u, v, ptudr, ptvdr);
 		ptdrifter[i].u = udr;
 		ptdrifter[i].v = vdr;
+
 	}
 
-	for (i = 0; i < n; i++){
-		printf("%i drifter, u = %f, v = %f\n", i, ptdrifter[i].u, ptdrifter[i].v);
-		printf("%i drifter, u = %f, v = %f\n", i, u[mi], v[mi]);
+
+	for (i = 0; i < ndr; i++){
+        ptdrifter[i].x = fmod(xdim + ptdrifter[i].x + (ptdrifter[i].u * dt) * 1.0 / dx, xdim);
+        ptdrifter[i].y = fmod(ydim + ptdrifter[i].y + (ptdrifter[i].v * dt) * 1.0 / dy, ydim);
+
+//        FILE *fpt;
+//        fpt = fopen("wendangming.txt","at+");//打开文档，写入
+//        fprintf("%i drifter, x= %f, y = %f, u = %f, v = %f\n", i,  ptdrifter[i].x,  ptdrifter[i].y, ptdrifter[i].u, ptdrifter[i].v);
+//        fclose(fpt);
 	}
-	
+
+
+    free(u);
+    free(v);
+    free(P);
+
 }
 
 
