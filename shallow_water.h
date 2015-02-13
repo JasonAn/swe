@@ -3,8 +3,8 @@
 #define tstart 00    //synchronization time t
 #define tsyn   500    //synchronization time t
 
-#define Dm  8           //Time Delay Dimension
-#define tau 10          //Time Delay
+#define Dm  10        //Time Delay Dimension
+#define tau 10      //Time Delay
 #define trimsr 256
 
 #define eps 0.001       //delta x
@@ -59,3 +59,5 @@ void drift(struct drifter *ptdrifter, size_t ndr, double *fields, int xdim, int 
 //jacobiandrifter.c
 
 void driftdelay(struct drifter *ptdrifter, double ***delaytensor, size_t ndr,  double *fields_dot, double *fields, const double *parameters, const double *forcing, int xdim, int ydim, double dx, double dy, unsigned int *lat, unsigned *lon, int **neighbors, double dt, unsigned int *print_out_order, long int ncycle);
+
+void coupling(int svd_m, int svd_n, double *jacT, double *fields_diff, double *temp2);

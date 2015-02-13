@@ -183,17 +183,21 @@ int main (int argc, char ** argv)
     print_field(P, "P", ncycle, xdim, ydim, print_out_order);
 
 
-    int ndr = 144; // number of drifters
+    int ndr = 144 ; // number of drifters
+    int sndr = 12;
 
     struct drifter *model_ptdrifter = calloc(ndr,sizeof(struct drifter));
     struct drifter *data_ptdrifter = calloc(ndr,sizeof(struct drifter));
 
-    for(i =0; i< 12; i++) {
-        for(j = 0; j < 12; j++) {
-            model_ptdrifter[i * 12 + j].x = data_ptdrifter[i * 12 + j].x = 2 + j;
-            model_ptdrifter[i * 12 + j].y = data_ptdrifter[i * 12 + j].y = 2 + i;
+    for(i =0; i< sndr; i++) {
+        for(j = 0; j < sndr; j++) {
+            model_ptdrifter[i * sndr + j].x = data_ptdrifter[i * sndr + j].x = 2 + j;
+            model_ptdrifter[i * sndr + j].y = data_ptdrifter[i * sndr + j].y = 2 + i;
         }
     }
+//    for(i = 0; i < ndr; i++){
+//        printf("%i, %f, %f\n", i, model_ptdrifter[i].x, data_ptdrifter[i].y);
+//    }
 
 
     /*

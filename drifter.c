@@ -16,11 +16,7 @@
 #include "/media/jason/Program/Library/interp2d-master/interp2d_spline.c"
 #include "/media/jason/Program/Library/interp2d-master/bicubic.c"
 
-
-void velinterp (double xdr, double ydr, int xdim, int ydim, double *u, double *v, double *ptudr, double *ptvdr);
-
-void drift(struct drifter *ptdrifter, size_t ndr, double *fields, int xdim, int ydim, double dx, double dy, unsigned int *lat, unsigned int *lon, double dt);
-
+void velinterp (struct drifter *ptdrifter, int ndr, int xdim, int ydim, double *u, double *v);
 
 void drift(struct drifter *ptdrifter, size_t ndr, double *fields, int xdim, int ydim, double dx, double dy, unsigned int *lat, unsigned *lon, double dt){
 
@@ -56,31 +52,14 @@ void drift(struct drifter *ptdrifter, size_t ndr, double *fields, int xdim, int 
 
     //printf("u =  %f, %f \n", u[0], u[15]);
 
-    double *ptudr, *ptvdr;
 
-	// need initialize the positions of the n drifters
-	
-	for (i = 0; i < ndr; i++){
-		double xdr, ydr, udr, vdr;  // temp memory for drifter position
-		ptudr = &udr;
-		ptvdr = &vdr;
-		xdr = ptdrifter[i].x;
-		ydr = ptdrifter[i].y;
-		velinterp (xdr, ydr, xdim + 1, ydim + 1, u, v, ptudr, ptvdr);
-		ptdrifter[i].u = udr;
-		ptdrifter[i].v = vdr;
-
-	}
-
+	velinterp(ptdrifter, ndr, xdim + 1, ydim + 1, u, v);
 
 	for (i = 0; i < ndr; i++){
-        ptdrifter[i].x = fmod(xdim + ptdrifter[i].x + (ptdrifter[i].u * dt) * 1.0 / dx, xdim);
-        ptdrifter[i].y = fmod(ydim + ptdrifter[i].y + (ptdrifter[i].v * dt) * 1.0 / dy, ydim);
-
-//        FILE *fpt;
-//        fpt = fopen("wendangming.txt","at+");//打开文档，写入
-//        fprintf("%i drifter, x= %f, y = %f, u = %f, v = %f\n", i,  ptdrifter[i].x,  ptdrifter[i].y, ptdrifter[i].u, ptdrifter[i].v);
-//        fclose(fpt);
+		ptdrifter[i].x += ptdrifter[i].u * dt * 1.0 / dx;
+		ptdrifter[i].y += ptdrifter[i].v * dt * 1.0 / dy;
+		ptdrifter[i].x -= xdim * floor(ptdrifter[i].x  / xdim);
+        ptdrifter[i].y -= ydim * floor(ptdrifter[i].y  / ydim);
 	}
 
 
@@ -91,8 +70,8 @@ void drift(struct drifter *ptdrifter, size_t ndr, double *fields, int xdim, int 
 }
 
 
-void velinterp (double xdr, double ydr, int xdim, int ydim, double *u, double *v, double *ptudr, double *ptvdr){
-	
+void velinterp (struct drifter *ptdrifter, int ndr, int xdim, int ydim, double *u, double *v){
+
 	int i, j;
 	double *xarr, *yarr;
 	xarr = calloc(xdim, sizeof(double));
@@ -102,7 +81,7 @@ void velinterp (double xdr, double ydr, int xdim, int ydim, double *u, double *v
 		xarr[i] = i * 1.0;
 	
 	for (j = 0; j < ydim; j++)
-		yarr[j]= j * 1.0;
+		yarr[j] = j * 1.0;
 
 	gsl_interp_accel *xa, *ya;
 	
@@ -116,10 +95,16 @@ void velinterp (double xdr, double ydr, int xdim, int ydim, double *u, double *v
 	
 	interp2d_spline_init(interp_u, xarr, yarr, u, xdim, ydim);
 	interp2d_spline_init(interp_v, xarr, yarr, v, xdim, ydim);
-	
-	*ptudr = interp2d_spline_eval(interp_u, xdr, ydr, xa, ya);
-	*ptvdr = interp2d_spline_eval(interp_v, xdr, ydr, xa, ya);
-	
+
+	double xdr, ydr;
+
+	for (i = 0; i < ndr; i++) {
+		xdr = ptdrifter[i].x;
+		ydr = ptdrifter[i].y;
+		ptdrifter[i].u = interp2d_spline_eval(interp_u, xdr, ydr, xa, ya);
+		ptdrifter[i].v = interp2d_spline_eval(interp_v, xdr, ydr, xa, ya);
+	}
+
 	free(xarr);
 	free(yarr);
 	gsl_interp_accel_free(xa);
