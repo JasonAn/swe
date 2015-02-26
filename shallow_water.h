@@ -3,8 +3,8 @@
 #define tstart 00    //synchronization time t
 #define tsyn   500    //synchronization time t
 
-#define Dm  10        //Time Delay Dimension
-#define tau 10      //Time Delay
+#define Dm  1     //Time Delay Dimension
+#define tau 5      //Time Delay
 #define trimsr 256
 
 #define eps 0.001       //delta x

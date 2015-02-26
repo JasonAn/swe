@@ -48,11 +48,8 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
     * memory for saving the fields
     */
 
-    double *fields_temp;
-    fields_temp = calloc(3 * tdim, sizeof(double));
-    memcpy(fields_temp, fields, 3 * tdim * sizeof(double));
-    const double * fields_save = fields_temp;
-    free(fields_temp);
+    double *fields_save = calloc(3 * tdim, sizeof(double));
+    memcpy(fields_save, fields, 3 * tdim * sizeof(double));
 
     struct drifter *ptdrifter_save = calloc(ndr,sizeof(struct drifter));
     struct drifter *ptmsrdrifter_save = calloc(ndr, sizeof(struct drifter));
@@ -69,6 +66,8 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
 
     }
 
+    double *fields_msr_save = calloc(3 * tdim, sizeof(double));
+    memcpy(fields_msr_save, fields_msr, 3 * tdim * sizeof(double));
 
     double ***delaytensor_model, ***delaytensor_data;
 
@@ -99,6 +98,18 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
             drifterdiff_1[i * ndr + j] = delaytensor_data[j][i][1] - delaytensor_model[j][i][1];
         }
     }
+
+    FILE *fpo;
+    char file_name[100];
+    sprintf(file_name, "t_%li,drifterdiff0",ncycle);
+
+    fpo = fopen(file_name,"w");
+    for(i = 0; i < Dm; i++){
+        for(j = 0; j < ndr; j++){
+            fprintf(file_name, "%e\n", drifterdiff_0[i]);
+        }
+    }
+    fclose(fpo);
 
 
     int ddim; // ddim: 0 - Dm
@@ -144,7 +155,7 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
     start = clock();
 
     for (ele = 0; ele < 3 * tdim; ele++){
-        printf("ele = %i, ncycle = %i\n", ele, ncycle);
+        //printf("ele = %i, ncycle = %li\n", ele, ncycle);
         
         memcpy(fieldspl, fields_save, 3 * tdim * sizeof(double));
         memcpy(fieldsmi, fields_save, 3 * tdim * sizeof(double));
@@ -181,7 +192,7 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
 
     for(ele = 0; ele < tdim;  ele++){
         for (ddim = 0; ddim < Dm;  ddim++){
-            for (i = 0; i < ndr; i ++){
+            for (i = 0; i < ndr; i++){
                 jacT_0[ele * svd_m + ddim * ndr + i] = jacobian[ele][i][ddim][0];
                 jacT_1[ele * svd_m + ddim * ndr + i] = jacobian[ele][i][ddim][1];
             }
@@ -198,14 +209,18 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
     coupling(svd_m, svd_n, jacT_0, drifterdiff_0, nudge_0);
     coupling(svd_m, svd_n, jacT_1, drifterdiff_1, nudge_1);
 
+    for (i = 0; i < 3 * tdim; i++){
+        printf("%f, %f\n",drifterdiff_0[i], drifterdiff_1[i]);
+    }
+
+
 //next step
 
     memcpy(fields, fields_save, 3 * tdim * sizeof(double));
 
-//    for (i = 0; i < 3 * tdim; i++){
-//        fields[i] = fields_save[i];
-//    }
-
+    for (i = 2 * tdim; i < 3 * tdim; i++){
+        fields[i] -= (fields_save[i] - fields_msr_save[i]);
+    }
 //    double *fields_next;
 //
 //    fields_next = calloc(tdim, sizeof(double));
@@ -215,20 +230,21 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
     RK4(fields_dot, fields, parameters, forcing, xdim, ydim, dx, dy, neighbors, lat, lon, print_out_order, ncycle);
 
     for (i = 0; i < 2 * tdim; i++) {
-        fields[i] += 0.5 * (nudge_0[i] + nudge_1[i]);
+        fields[i] += 1.0 * (nudge_0[i] + nudge_1[i]);
     }
-    for (i = 2 * tdim; i < 3 * tdim; i++){
-        fields[i] += 1.5 * (nudge_0[i] + nudge_1[i]);
-    }
+//    for (i = 2 * tdim; i < 3 * tdim; i++){
+//        fields[i] += fields_save[i] * (nudge_0[i] + nudge_1[i]);
+//    }
+//
+    print_field(u, "u", ncycle, xdim, ydim, print_out_order);
+    print_field(v, "v", ncycle, xdim, ydim, print_out_order);
+    print_field(P, "P", ncycle, xdim, ydim, print_out_order);
 
-    memcpy(ptdrifter_save,ptdrifter, ndr * sizeof(struct drifter));
+    memcpy(ptdrifter_save, ptdrifter, ndr * sizeof(struct drifter));
     memcpy(ptmsrdrifter_save, ptmsrdrifter, ndr * sizeof(struct drifter));
     drift(ptdrifter, ndr, fields, xdim, ydim, dx, dy, lat, lon, dt);
     drift(ptmsrdrifter, ndr, fields_msr, xdim, ydim, dx, dy, lat, lon, dt);
 
-    print_field(u, "u", ncycle, xdim, ydim, print_out_order);
-    print_field(v, "v", ncycle, xdim, ydim, print_out_order);
-    print_field(P, "P", ncycle, xdim, ydim, print_out_order);
     fflush(stdout);
 
     duration = (double)(finish - start)/CLOCKS_PER_SEC;
@@ -238,12 +254,12 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
         free(neighbors[i]);
     }
 
+    free(fields_msr_save);
     free(neighbors);
-//    free(fields_ori);
     free(fields_msr);
 
-//    free(fieldspl);
-//    free(fieldsmi);
+    free(fieldspl);
+    free(fieldsmi);
 
     free(psi);
 
@@ -255,6 +271,9 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
            free(delaytensorpl[i][j]);
            free(delaytensormi[i][j]);
         }
+    }
+
+    for(i = 0; i < ndr; i++){
         free(delaytensorpl[i]);
         free(delaytensormi[i]);
     }
@@ -270,20 +289,35 @@ void jacobiandrifter(struct drifter *ptdrifter, struct drifter *ptmsrdrifter, si
             for(j = 0; j < Dm; j++){
                 free(jacobian[ele][i][j]);
             }
+        }
+    }
+
+    for(ele = 0; ele < 3 * tdim; ele++){
+        for(i = 0; i < ndr; i++){
             free(jacobian[ele][i]);
         }
+    }
+    
+    for(ele = 0; ele < 3 * tdim; ele++){
         free(jacobian[ele]);
     }
 
     free(jacobian);
+
     for(i = 0; i < ndr; i++){
         for(j = 0; j < Dm; j++) {
             free(delaytensor_data[i][j]);
             free(delaytensor_model[i][j]);
         }
-        free(delaytensor_data);
-        free(delaytensor_model);
     }
+
+    for(i = 0; i < ndr; i++){
+        free(delaytensor_data[i]);
+        free(delaytensor_model[i]);
+    }
+
+    free(delaytensor_data);
+    free(delaytensor_model);
 
 
     free(nudge_0);

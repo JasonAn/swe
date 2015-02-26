@@ -9,12 +9,11 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_ieee_utils.h>
 #include <gsl/gsl_test.h>
-#include <interp2d.h>
-#include "/media/jason/Program/Library/interp2d-master/interp2d.h"
-#include "/media/jason/Program/Library/interp2d-master/interp2d_spline.h"
-#include "/media/jason/Program/Library/interp2d-master/interp2d.c"
-#include "/media/jason/Program/Library/interp2d-master/interp2d_spline.c"
-#include "/media/jason/Program/Library/interp2d-master/bicubic.c"
+#include "interp2d.h"
+#include "interp2d_spline.h"
+#include "interp2d.c"
+#include "interp2d_spline.c"
+#include "bicubic.c"
 
 void velinterp (struct drifter *ptdrifter, int ndr, int xdim, int ydim, double *u, double *v);
 
@@ -35,7 +34,7 @@ void drift(struct drifter *ptdrifter, size_t ndr, double *fields, int xdim, int 
 
     for(i = 0; i < tdim; i++){
         u[lat[i] * xdim + lon[i] + lat[i]] = fields[i];
-		v[lat[i] * xdim + lon[i] + lat[i]] = fields[i + tdim];
+        v[lat[i] * xdim + lon[i] + lat[i]] = fields[i + tdim];
         //P[lat[i] * xdim + lon[i] + lat[i]] = fields[i + 2 * tdim];
     }
 
@@ -58,10 +57,9 @@ void drift(struct drifter *ptdrifter, size_t ndr, double *fields, int xdim, int 
 	for (i = 0; i < ndr; i++){
 		ptdrifter[i].x += ptdrifter[i].u * dt * 1.0 / dx;
 		ptdrifter[i].y += ptdrifter[i].v * dt * 1.0 / dy;
-		ptdrifter[i].x -= xdim * floor(ptdrifter[i].x  / xdim);
-        ptdrifter[i].y -= ydim * floor(ptdrifter[i].y  / ydim);
-	}
-
+		ptdrifter[i].x -= xdim * floor(ptdrifter[i].x / xdim);
+        ptdrifter[i].y -= ydim * floor(ptdrifter[i].y / ydim);
+    }
 
     free(u);
     free(v);

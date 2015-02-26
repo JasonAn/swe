@@ -7,8 +7,8 @@ import os
 import math
 
 init_time = 0
-nodes = 1000
-end_time = 10000
+nodes = 105
+end_time = 105
 
 step = (end_time - init_time) / nodes
 
@@ -24,10 +24,10 @@ def cal(time):
 
     P_syn = np.loadtxt(pwd+"/"+Nstr+"x"+Nstr+"/P_t"+time+".dat")
     P_msr = np.loadtxt(pwd+"/"+Nstr+"x"+Nstr+"_msr/P_t"+time+".dat")
-    
+
     u_syn = np.loadtxt(pwd+"/"+Nstr+"x"+Nstr+"/u_t"+time+".dat")
     u_msr = np.loadtxt(pwd+"/"+Nstr+"x"+Nstr+"_msr/u_t"+time+".dat")
-    
+
     v_syn = np.loadtxt(pwd+"/"+Nstr+"x"+Nstr+"/v_t"+time+".dat")
     v_msr = np.loadtxt(pwd+"/"+Nstr+"x"+Nstr+"_msr/v_t"+time+".dat")
 
@@ -37,7 +37,7 @@ def cal(time):
     u_error = sum((u_syn-u_msr)**2)
     v_error = sum((v_syn-v_msr)**2)
 
-       
+
     #for i in range(NN):
         #P_error += (P_syn[i]-P_msr[i])**2
         #u_error += (u_syn[i]-u_msr[i])**2
@@ -57,16 +57,16 @@ v_SE = np.zeros(nodes)
 
 for time in range(init_time, end_time, step):
     (P_series[time/step],u_series[time/step],v_series[time/step]) = cal(time)
-    
+
 
 #for i in xrange(0, nodes, 1):
 #    for j in xrange(0, i+1, 1):
 #        P_SE[i] += P_series[j] * 1.0 / (i+1)
 #        u_SE[i] += u_series[j] * 1.0 / (i+1)
-#        v_SE[i] += v_series[j] * 1.0 / (i+1)    
+#        v_SE[i] += v_series[j] * 1.0 / (i+1)
 
 t = np.arange(init_time, end_time, step)
-    
+
 fig, ax = plt.subplots()
 ax.plot(t, P_series, 'y', label='P_series')
 ax.plot(t, u_series, 'b', label='u_series')
